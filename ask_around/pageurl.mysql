@@ -1,0 +1,7 @@
+drop table if exists taobao_item_page;
+
+CREATE TABLE taobao_item_page(
+    id varchar(36) primary key,
+    url varchar(255) unique
+)engine=Innodb default CHARSET=utf8 COMMENT='淘宝商品url';
+

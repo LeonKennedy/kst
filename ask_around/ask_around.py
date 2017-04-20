@@ -86,6 +86,7 @@ class TaoBao:
                 logging.debug("当前有 %d 个" % len(element.find_elements_by_xpath('.//div[@class="kg-rate-ct-review-item"]')))
                 return True
             except:
+                traceback.print_exc()
                 logging.warn("somthing wrong!!!!!!!!!!!!!!")
                 return True
         return True
