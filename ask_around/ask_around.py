@@ -55,6 +55,7 @@ class TaoBao:
             element_as.click()
             #获取评论列表
             element_as_list = WebDriverWait(bd,6).until(EC.presence_of_element_located((By.XPATH, './/div[@class="J_KgRate_List_AskAround kg-rate-wd-ask-around-list"]')))
+            time.sleep(1)
             WebDriverWait(element_as_list,6).until(EC.presence_of_element_located((By.XPATH, './/div[@class="kg-rate-ct-review-item"]')))
             #element_as_list = self.waitRender(bd.find_element_by_xpath, '//div[@class="J_KgRate_List_AskAround kg-rate-wd-ask-around-list"]')
             #element_one = self.waitRender(element_as_list.find_element_by_xpath, '//div[@class="kg-rate-ct-review-item"]')
@@ -118,6 +119,7 @@ class TaoBao:
             answer_list.append(ans)
 
         result['answer'] = answer_list
+        print(result)
         return result
 
     def clickMoreAnswer(self, element):
@@ -161,8 +163,9 @@ class TaoBao:
 if __name__ == "__main__":
     t = TaoBao()
     #正常
-    url = "https://item.taobao.com/item.htm?spm=a217f.1257546.1998139181.1000.n6IvEB&id=524277413474&scm=1029.minilist-17.1.50099260&ppath=&sku=&ug=#detail"
+    #url = "https://item.taobao.com/item.htm?spm=a217f.1257546.1998139181.1000.n6IvEB&id=524277413474&scm=1029.minilist-17.1.50099260&ppath=&sku=&ug=#detail"
     #累计评论 0
     #url = "https://item.taobao.com/item.htm?spm=a217f.1257546.1998139181.518.KNFLNq&id=521371673727&scm=1029.minilist-17.1.50099260&ppath=&sku=&ug=#detail"
+    url = 'https://item.taobao.com/item.htm?id=520292671302'
     t.getAskAroundByItemPage(url)
 
