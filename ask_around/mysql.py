@@ -13,15 +13,12 @@ class MysqlTool:
     def __init__(self):
         self.connect = pymysql.connect(host='localhost',user = 'kst',password='kst410',
                 db='kst', charset='utf8mb4')
-        self.cur_q = self.connect.cursor()
+        self.cur_query = self.connect.cursor()
         self.cur_unique_query = self.connect.cursor()
         self.cur_insert = self.connect.cursor()
-
-
+        self.cur_update = self.connect.cursor()
 
     # +++++++++++++++++++ insert +++++++++++++++++
-
-
     def insertByDict(self, table, item):
         keys = list()
         values = list()
@@ -51,12 +48,27 @@ class MysqlTool:
 
     # ++++++++++++++++++++ query +++++++++++++++
     def queryAndFetchall(self, sql):
+        self.cur_query.execute(sql)
+        return self.cur_query.fetchall()
 
+
+    #++++++++++++++ update ++++++++++++++
+    def updateBySql(self, sql, save=False):
+        pass
+
+
+    #++++++++++++++  common ++++++++
+    def commit(self):
+        pass
+
+    #+++++++++++++  test  ++++++++++
+    def test_o(self):
+        pass
 
 
 
     def __del__(self):
-        self.cur_q.close()
+        self.cur_query.close()
         self.cur_unique_query.close()
         self.cur_insert.close()
         self.connect.commit()
