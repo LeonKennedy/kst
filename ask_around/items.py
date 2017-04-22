@@ -19,7 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO,filename='crawl.log',filemode='w')
 class TaobaoItem:
 
 
@@ -35,9 +35,8 @@ class TaobaoItem:
         self.driver = webdriver.Firefox()
         self.mt = MysqlTool()
 
-
     def getCategoryUrlFromDB(self):
-        sql = "select * from taobao_category where cat is not null and stat = 'raw' limit 1 "
+        sql = "select * from taobao_category where cat is not null and stat = 'raw' limit 100 "
         self.cur_q.execute(sql)
         categorys = self.cur_q.fetchall()
         self.cur_q.close()
@@ -45,9 +44,9 @@ class TaobaoItem:
             url = "https://s.taobao.com/list?cat=%s" % cat
             self.startPages(url, cid, offset)
             if self.recordEndCategory(cid):
-                print "=======Finish %d======" %cid
+                logging.info("=======Finish %d======" %cid)
             else:
-                print "=======wrong %d ======" %cid
+                logging.info("=======wrong %d ======" %cid)
 
     def startPages(self,url, cid, offset):
         flag = True
@@ -61,7 +60,7 @@ class TaobaoItem:
 
     def startItems(self, url, cid):
         #打开网址
-        print url
+        logging.info(url)
         self.driver.get(url)
         time.sleep(1)
         #点击排序
@@ -73,6 +72,7 @@ class TaobaoItem:
         for i in tab.find_elements_by_xpath('div[@data-index]'):
             item = self.parse_item(i)
             item['category_id'] = cid
+
             self.mt.uniqueInsertByDict('taobao_items', item, 'item_id')
         return True
 
@@ -81,7 +81,8 @@ class TaobaoItem:
         item = dict()
         item['price'] = element_info.find_element_by_xpath('div[1]//strong').text
         item['paytimes'] = element_info.find_element_by_xpath('div[1]/div[@class="deal-cnt"]').text
-        item['content'] = element_info.find_element_by_xpath('div[2]/a').text
+        content = element_info.find_element_by_xpath('div[2]/a').text
+        item['content'] = content.replace('"','\\"')
         item['item_id'] = element_info.find_element_by_xpath('div[2]/a').get_attribute('data-nid')
         item['url'] = element_info.find_element_by_xpath('div[2]/a').get_attribute('href')
         item['location'] = element_info.find_element_by_xpath('div[3]/div[@class="location"]').text
@@ -108,24 +109,10 @@ class TaobaoItem:
             return False
 
     def baseUpdate(self, sql):
-        if self.cur_update.execute(sql):
-            self.connect.commit()
-            return True
-        else:
-            print "execute false"
-            return False
+        self.cur_update.execute(sql)
+        self.connect.commit()
+        return True
 
-    def save_item(self,item):
-        sql = "select * from taobao_items where item_id = '%s'" % item['item_id']
-        if self.cur_unique_query.execute(sql):
-            print('Item[%s] is exesits!' % item['item_id'])
-            return 
-        else:
-            sql = "insert taobao_items(price,paytimes,content, item_id, location,shop_id, shop_name) \
-                    values('%s','%s','%s','%s','%s','%s', '%s') " % ( item['price'], item['paytimes'], item['content'], item['item_id'],
-                    item['location'], item['shop_id'], item['shop_name'])
-            self.cur_insert.execute(sql)
-        
     def __del__(self):
         self.driver.quit()
         self.display.stop()

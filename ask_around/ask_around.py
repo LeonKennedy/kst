@@ -18,10 +18,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-logging.basicConfig(level=logging.DEBUG)
+from mysql import MysqlTool
+#logging.basicConfig(level=logging.DEBUG)
 
 
-class TaoBao:
+class TaobaoAskAround:
 
 
     #binary = FirefoxBinary('/root/bin/geckodriver')
@@ -31,9 +32,10 @@ class TaoBao:
         self.display = Display(visible=0, size=(1024, 768))
         self.display.start()
         self.driver = webdriver.Firefox()
-        pass
+        self.mt = MysqlTool()
 
     def getInfo(self):
+        sql = "select * from taobao_items where stat = 'raw' limit 10"
         driver = self.driver
         time.sleep(1)
 
@@ -51,14 +53,11 @@ class TaoBao:
             #点击大家说
             time.sleep(3)
             element_as = WebDriverWait(bd, 10).until(EC.presence_of_element_located((By.XPATH, './/div[@class="kg-rate"]/ul/li[3]')))
-            #element_as = self.waitRender(driver.find_element_by_xpath, '//div[@class="kg-rate"]/ul/li[3]'
             element_as.click()
             #获取评论列表
             element_as_list = WebDriverWait(bd,6).until(EC.presence_of_element_located((By.XPATH, './/div[@class="J_KgRate_List_AskAround kg-rate-wd-ask-around-list"]')))
             time.sleep(1)
             WebDriverWait(element_as_list,6).until(EC.presence_of_element_located((By.XPATH, './/div[@class="kg-rate-ct-review-item"]')))
-            #element_as_list = self.waitRender(bd.find_element_by_xpath, '//div[@class="J_KgRate_List_AskAround kg-rate-wd-ask-around-list"]')
-            #element_one = self.waitRender(element_as_list.find_element_by_xpath, '//div[@class="kg-rate-ct-review-item"]')
             try:
                 element_as_list.find_element_by_xpath('.//div[@class="kg-rate-ct-review-item"]')
             except:
@@ -125,14 +124,6 @@ class TaoBao:
     def clickMoreAnswer(self, element):
         element.find_element_by_xpath('.//div[@class="q-or-a J_KgRate_AskAround_MoreAnswers more"]/span').click()
         time.sleep(1)
-
-    def waitRender(self,call, params, intertime = 3, times = 2):
-        time.sleep(intertime)
-        try:
-            return call(params)
-        except:
-            time.sleep(intertime)
-            return call(params)
 
     def __del__(self):
         #self.closeFirefox()
