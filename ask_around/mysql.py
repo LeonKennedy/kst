@@ -93,10 +93,10 @@ class JSONDataManager:
 
     def initConn(self):
         if self.conn :
-            print "连接存在"
+            print("连接存在")
             return
         else:
-            print "connect..."
+            print("connect...")
             #self.conn = MySQLdb.connect(host='56c1952d3edfa.gz.cdb.myqcloud.com',user='cdb_outerroot',passwd='quchu2015',db='scrapingdb',port=8426, charset='utf8')
             self.conn = MySQLdb.connect(host='56f214b4408fa.gz.cdb.myqcloud.com',user='cdb_outerroot',passwd='quchu2015',db='quchu',port=12020, charset='utf8')
             print "create cursor..."
