@@ -47,6 +47,12 @@ class TaobaoItem:
                 logging.info("=======Finish %d======" %cid)
             else:
                 logging.info("=======wrong %d ======" %cid)
+            self.driverRefresh()
+
+
+    def driverRefresh(self):
+        self.driver.quit()
+        self.driver = webdriver.Firefox()
 
     def startPages(self,url, cid, offset):
         flag = True
@@ -119,10 +125,17 @@ class TaobaoItem:
         self.cur_update.close()
         self.connect.commit()
         self.connect.close()
+   
+    def test(self,url):
+        self.driver.get(url)
+        time.sleep(1)
+        self.driver.quit()
+        self.driver.get(url)
+
 
 if __name__ == "__main__":
     t = TaobaoItem()
     url="https://www.taobao.com/market/nvzhuang/yurong.php"
     t.getCategoryUrlFromDB()
-    #t.startPage(url)
+    #t.test(url)
 

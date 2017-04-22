@@ -62,10 +62,16 @@ class MysqlTool:
         pass
 
     #+++++++++++++  test  ++++++++++
+    #当遍历fetchall时   insert或者update 的commit 会不会影响query?
+    #insert 不影响
+    #update 不影响
     def test_o(self):
-        pass
-
-
+        self.cur_query.execute("select * from uaa")
+        for a in self.cur_query.fetchall():
+            sql = "update uaa set stat = 'finis' where id = %d" % a[0]
+            self.cur_update.execute(sql)
+            self.flush()
+            print(a)
 
     def __del__(self):
         self.cur_query.close()
@@ -202,8 +208,7 @@ class JSONDataManager:
     
 if __name__ == '__main__':
     mt = MysqlTool()
-    item = {'aaa': 123,'bbb':'valueb','ccc':'valuec'}
-    mt.insertByDict('taobao_items',item) 
+    mt.test_o()
     #b.olenji()
     #b.cur.execute("select product_id,latitude,longitude from sjs_yhouse where product_id in (18872,18934,18940,18943,18987,19003)")
     #print b.cur.fetchall()
