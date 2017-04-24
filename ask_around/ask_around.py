@@ -6,9 +6,9 @@
 # @Create: 2017-04-18 11:15:22
 # @Last Modified: 2017-04-18 11:15:22
 #
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
+#import sys
+#reload(sys)
+#sys.setdefaultencoding('utf8')
 
 import time, logging, pdb, os, signal, traceback,json
 from pyvirtualdisplay import Display
@@ -19,9 +19,10 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from mysql import MysqlTool
 
 #from mysql import MysqlTool
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class TaobaoAskAround:
@@ -37,22 +38,26 @@ class TaobaoAskAround:
         self.display = Display(visible=0, size=(1024, 768))
         self.display.start()
         self.driver = webdriver.Firefox()
+        self.mt= MysqlTool()
 
     def getInfo(self):
         sql = "select * from taobao_items where stat = 'raw' limit 10"
         for item in self.mt.queryAndFetchall(sql):
+            logging.info("parse item[%s]" % item[8])
             self.parse_item(item)
 
         #记录执行情况
     def record_process(self):
         pass
+
     def parse_item(self, item):
-        url = "https://item.taobao.com/item.htm?id=%s&on_comment=1" % item['item_id']
-        self.category['item_id'] = item['item_id']
+        logging.info("parse item[%s]" % item[8])
+        url = "https://item.taobao.com/item.htm?id=%s&on_comment=1" % item[8]
+        self.category['item_id'] = item[8]
         if self.getAskAroundByItemPage(url):
-            sql = "update taobao_items set stat = 'finish' where id = %d" % item['id']
+            sql = "update taobao_items set stat = 'finish' where id = %d" % item[0]
         else:
-            sql = "update taobao_items set stat = 'error' where id = %d" % item['id']
+            sql = "update taobao_items set stat = 'error' where id = %d" % item[0]
         self.mt.cur_update.execute(sql)
         self.mt.connect.commit()
         return sql
@@ -74,11 +79,16 @@ class TaobaoAskAround:
             #点击大家说
             element_as = WebDriverWait(bd, 10).until(EC.presence_of_element_located((By.XPATH, './/div[@class="kg-rate"]/ul/li[@data-kg-rate-tab="ask-around"]')))
             element_as.click()
+            time.sleep(3)
+        except TimeoutException:
+            logging.info("Not Found element Ask_around Tab")
+            return None
             #获取评论列表
+        try:
             element_as_list = WebDriverWait(bd,10).until(EC.presence_of_element_located((By.XPATH, '//div[@class="J_KgRate_List_AskAround kg-rate-wd-ask-around-list"]')))
             element_first_item = WebDriverWait(element_as_list,6).until(EC.presence_of_element_located((By.XPATH, 'div[@class="kg-rate-ct-review-item"]')))
         except TimeoutException:
-            logging.info("Not Found Ask_around Record")
+            logging.info("Not Found element Ask_around List")
             return None
         flag = True
         while flag:
@@ -88,7 +98,11 @@ class TaobaoAskAround:
                 return None
             elif "kg-rate-ct-review-item" == css_name:
                 self.holdAskAround(element_first_item)
-                element_second_item = element_first_item.find_element_by_xpath("following-sibling::div[1]")
+                try:
+                    element_second_item = element_first_item.find_element_by_xpath("following-sibling::div[1]")
+                except NoSuchElementException:
+                    logging.info(' Finish item : %s' % url)
+                    return True
                 css_name_second = element_second_item.get_attribute('class')
                 if css_name == css_name_second:
                     element_first_item = element_second_item
@@ -164,6 +178,7 @@ class TaobaoAskAround:
         result['answer'] = answer_list
         result['item_id'] = self.category['item_id']
         print(result)
+        pdb.set_trace()
         self.persistenceToFile(result)
         return result
 
@@ -180,7 +195,7 @@ class TaobaoAskAround:
             else:
                 break
         with open(filename, 'a') as f:
-            f.write(json.dumps(record) + '\n')
+            f.write(json.dumps(record, ensure_ascii=False, encoding='gbk') + '\n')
         return True
 
         
@@ -219,6 +234,7 @@ if __name__ == "__main__":
     #url = "https://item.taobao.com/item.htm?spm=a217f.1257546.1998139181.518.KNFLNq&id=521371673727&scm=1029.minilist-17.1.50099260&ppath=&sku=&ug=#detail"
     url = 'https://item.taobao.com/item.htm?id=520292671302'
     item = {'item_id' : "533774846773", 'id':123}
-    item = {'item_id' : "522093912670", 'id':123}
+    item = ( 123,1,2,3,4,5,6,7,"533774846773")
+    #t.getInfo()
     t.parse_item(item)
 

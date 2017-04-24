@@ -11,7 +11,7 @@ import json, sys,datetime, pymysql, pdb
 class MysqlTool:
     
     def __init__(self):
-        self.connect = pymysql.connect(host='localhost',user = 'kst',password='kst410',
+        self.connect = pymysql.connect(host='119.23.72.240',user = 'kst',password='kst410',
                 db='kst', charset='utf8mb4')
         self.cur_query = self.connect.cursor()
         self.cur_unique_query = self.connect.cursor()
@@ -31,7 +31,7 @@ class MysqlTool:
         if self.cur_insert.execute(sql):
             return True
         else:
-            print "error insert item"
+            print("error insert item")
             return False
 
     def uniqueInsertByDict(self, table, item ,unique_key):
@@ -99,17 +99,17 @@ class JSONDataManager:
             print("connect...")
             #self.conn = MySQLdb.connect(host='56c1952d3edfa.gz.cdb.myqcloud.com',user='cdb_outerroot',passwd='quchu2015',db='scrapingdb',port=8426, charset='utf8')
             self.conn = MySQLdb.connect(host='56f214b4408fa.gz.cdb.myqcloud.com',user='cdb_outerroot',passwd='quchu2015',db='quchu',port=12020, charset='utf8')
-            print "create cursor..."
+            print("create cursor...")
             self.cur = self.conn.cursor()
 
 
     def closeConn(self):
         if self.cur:
-            print "close cursor..."
+            print("close cursor...")
             self.cur.close()
         if self.conn:
             self.conn.commit()
-            print "close connection..."
+            print("close connection...")
             self.conn.close()
 
     #每次默认取1000条来输出
@@ -119,7 +119,7 @@ class JSONDataManager:
         length = num
         while length == num:
             limitsql = sql + " limit %d,%d" % (offset,num)
-            print limitsql
+            print(limitsql)
             self.cur.execute(limitsql)
             results = self.cur.fetchall()
             length = len(results)
@@ -140,7 +140,7 @@ class JSONDataManager:
             insertsql = "insert into wechat_word values(%s,2,'%s','%s',800,'%s', now() )" %(start_index,placename,place[0],nextcraltime )
             start_index+=1
             nextcraltime += datetime.timedelta(seconds=1)
-            print insertsql
+            print(insertsql)
             self.localcur.execute(insertsql)
 
     def temp(self):
