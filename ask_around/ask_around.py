@@ -6,7 +6,9 @@
 # @Create: 2017-04-18 11:15:22
 # @Last Modified: 2017-04-18 11:15:22
 #
-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 import time, logging, pdb, os, signal, traceback,json
 from pyvirtualdisplay import Display
@@ -19,7 +21,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 #from mysql import MysqlTool
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 class TaobaoAskAround:
@@ -51,8 +53,8 @@ class TaobaoAskAround:
             sql = "update taobao_items set stat = 'finish' where id = %d" % item['id']
         else:
             sql = "update taobao_items set stat = 'error' where id = %d" % item['id']
-
-        print(sql)
+        self.mt.cur_update.execute(sql)
+        self.mt.connect.commit()
         return sql
 
     def getAskAroundByItemPage(self, url):
@@ -101,15 +103,12 @@ class TaobaoAskAround:
                 logging.info("Found Ask_around a special Record: %s" % css_name)
                 logging.info(driver.current_url)
                 return None
-
-
         return True
         try:
             element_as_list.find_element_by_xpath('.//div[@class="kg-rate-ct-review-item"]')
         except NoSuchElementException:
             logging.debug("Not Found Ask Around Record!!!")
             return None
-
         #点击跟多
         #self.clickMoreComment(element_as_list)
 
@@ -181,7 +180,7 @@ class TaobaoAskAround:
             else:
                 break
         with open(filename, 'a') as f:
-            f.write(json.dumps(record, ensure_ascii=False) + '\n')
+            f.write(json.dumps(record) + '\n')
         return True
 
         
