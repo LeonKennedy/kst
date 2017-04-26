@@ -19,7 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 
-logging.basicConfig(level=logging.INFO,filename='crawl.log',filemode='w')
+logging.basicConfig(level=logging.INFO,filename='crawl.log',filemode='a')
 class TaobaoItem:
 
 
@@ -36,7 +36,7 @@ class TaobaoItem:
         self.mt = MysqlTool()
 
     def getCategoryUrlFromDB(self):
-        sql = "select * from taobao_category where cat is not null and stat = 'raw' limit 100 "
+        sql = "select * from taobao_category where cat is not null and stat = 'raw' and id <= 500 limit 100 "
         self.cur_q.execute(sql)
         categorys = self.cur_q.fetchall()
         self.cur_q.close()

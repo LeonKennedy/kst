@@ -84,6 +84,7 @@ class TaobaoAskAround:
             logging.info("Not Found element Ask_around Tab")
             return None
             #获取评论列表
+        pdb.set_trace()
         try:
             element_as_list = WebDriverWait(bd,10).until(EC.presence_of_element_located((By.XPATH, '//div[@class="J_KgRate_List_AskAround kg-rate-wd-ask-around-list"]')))
             element_first_item = WebDriverWait(element_as_list,6).until(EC.presence_of_element_located((By.XPATH, 'div[@class="kg-rate-ct-review-item"]')))
