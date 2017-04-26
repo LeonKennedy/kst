@@ -44,7 +44,7 @@ class TaobaoAskAround:
         self.mt= MysqlTool()
 
     def getInfo(self):
-        sql = "select * from taobao_items where paytimes > '0人付款' and stat = 'raw' limit 1000"
+        sql = "select * from taobao_items where paytimes > '0人付款' and stat = 'raw' and id <= 100000 limit 1000"
         for item in self.mt.queryAndFetchall(sql):
             self.parse_item(item)
 
@@ -118,7 +118,11 @@ class TaobaoAskAround:
                     element_first_item = element_second_item
                 elif "J_KgRate_AskAround_MoreQuestionsWrapper kg-rate-ct-review-item restore-pd" == css_name_second:
                     element_second_item.find_element_by_xpath('a').click()
-                    WebDriverWait(element_first_item,4).until(EC.presence_of_element_located((By.XPATH, 'following-sibling::div[@class="kg-rate-ct-review-item"]')))
+                    try:
+                        WebDriverWait(element_first_item,4).until(EC.presence_of_element_located((By.XPATH, 'following-sibling::div[@class="kg-rate-ct-review-item"]')))
+                    except TimeoutException:
+                        logging.info(' Finish item : %s' % url)
+                        return True
                     #time.sleep(1)
                     #self.clickMoireComment(element_second_item)
                     element_first_item = element_first_item.find_element_by_xpath("following-sibling::div[1]")
@@ -232,7 +236,7 @@ if __name__ == "__main__":
     #url = "https://item.taobao.com/item.htm?spm=a217f.1257546.1998139181.518.KNFLNq&id=521371673727&scm=1029.minilist-17.1.50099260&ppath=&sku=&ug=#detail"
     url = 'https://item.taobao.com/item.htm?id=520292671302'
     item = {'item_id' : "533774846773", 'id':123}
-    item = ( 2436,1,2,3,4,5,6,7,"535541261606")
-    t.getInfo()
-    #t.parse_item(item)
+    item = ( 4877,1,2,3,4,5,6,7,"528865833792")
+    #t.getInfo()
+    t.parse_item(item)
 
