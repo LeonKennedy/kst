@@ -18,11 +18,12 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException       
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from mysql import MysqlTool
 
 #from mysql import MysqlTool
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 class TaobaoAskAround:
@@ -33,6 +34,8 @@ class TaobaoAskAround:
     #数据文件下标
     fileindex = 1000
     category = dict()
+    #数据文件名
+    basedir = 'data'
 
     def __init__(self):
         self.display = Display(visible=0, size=(1024, 768))
@@ -43,7 +46,6 @@ class TaobaoAskAround:
     def getInfo(self):
         sql = "select * from taobao_items where paytimes > '0人付款' and stat = 'raw' and id <= 100000 limit 1000"
         for item in self.mt.queryAndFetchall(sql):
-            logging.info("parse item[%s]" % item[8])
             self.parse_item(item)
 
         #记录执行情况
@@ -51,8 +53,8 @@ class TaobaoAskAround:
         pass
 
     def parse_item(self, item):
-        logging.info("parse item[%s]" % item[8])
-        url = "https://item.taobao.com/item.htm?id=%s&on_comment=1" % item[8]
+        logging.info("parse item[%s], id is %d" % (item[8], item[0]))
+        url = "https://item.taobao.com/item.html?id=%s" % item[8]
         self.category['item_id'] = item[8]
         if self.getAskAroundByItemPage(url):
             sql = "update taobao_items set stat = 'finish' where id = %d" % item[0]
@@ -67,32 +69,38 @@ class TaobaoAskAround:
         driver = self.driver
         driver.get(url)
         time.sleep(1)
-        bd = driver.find_element_by_id('bd')
-        element_comment = bd.find_element_by_id('J_TabBar').find_element_by_xpath('li[2]')
+        try:
+            bd = driver.find_element_by_id('bd')
+        except NoSuchElementException:
+            logging.info("Not Found element bd")
+            return True
         #如果没有评论 就不要爬取了
-        if element_comment.find_element_by_xpath('.//em[@class="J_ReviewsCount"]').text ==  '0':
-            logging.info("comment number is 0")
-            return None
+        try:
+            element_comment = bd.find_element_by_id('J_TabBar').find_element_by_xpath('li[2]')
+            if element_comment.find_element_by_xpath('.//em[@class="J_ReviewsCount"]').text ==  '0':
+                logging.info("comment number is 0")
+                return True
+        except NoSuchElementException:
+            logging.info("Not Found element comment")
+            return True
         #点击评论
-        #element_comment.find_element_by_xpath('a').click()
+        element_comment.find_element_by_xpath('a').click()
         try:
             #点击大家说
             element_as = WebDriverWait(bd, 10).until(EC.presence_of_element_located((By.XPATH, './/div[@class="kg-rate"]/ul/li[@data-kg-rate-tab="ask-around"]')))
+            #ActionChains(self.driver).move_to_element(element_as).perform()
             element_as.click()
-            time.sleep(3)
         except TimeoutException:
             logging.info("Not Found element Ask_around Tab")
             return None
             #获取评论列表
-        pdb.set_trace()
         try:
             element_as_list = WebDriverWait(bd,10).until(EC.presence_of_element_located((By.XPATH, '//div[@class="J_KgRate_List_AskAround kg-rate-wd-ask-around-list"]')))
             element_first_item = WebDriverWait(element_as_list,6).until(EC.presence_of_element_located((By.XPATH, 'div[@class="kg-rate-ct-review-item"]')))
         except TimeoutException:
             logging.info("Not Found element Ask_around List")
             return None
-        flag = True
-        while flag:
+        while 1:
             css_name = element_first_item.get_attribute('class')
             if "kg-loading" == css_name:
                 logging.info("Not Found Ask_around Record")
@@ -112,7 +120,6 @@ class TaobaoAskAround:
                     try:
                         WebDriverWait(element_first_item,4).until(EC.presence_of_element_located((By.XPATH, 'following-sibling::div[@class="kg-rate-ct-review-item"]')))
                     except TimeoutException:
-                        logging.info(' Finish item : %s' % url)
                         return True
                     #time.sleep(1)
                     #self.clickMoireComment(element_second_item)
@@ -124,18 +131,7 @@ class TaobaoAskAround:
                 logging.info(driver.current_url)
                 return None
         return True
-        try:
-            element_as_list.find_element_by_xpath('.//div[@class="kg-rate-ct-review-item"]')
-        except NoSuchElementException:
-            logging.debug("Not Found Ask Around Record!!!")
-            return None
-        #点击跟多
         #self.clickMoreComment(element_as_list)
-
-        #处理所有ask_around
-        for element_askaround in element_as_list.find_elements_by_xpath('//div[@class="kg-rate-ct-review-item"]'):
-            self.holdAskAround(element_askaround)
-
 
     #点击更多
     def clickMoreComment(self, element):
@@ -184,7 +180,6 @@ class TaobaoAskAround:
         result['answer'] = answer_list
         result['item_id'] = self.category['item_id']
         print(result)
-        pdb.set_trace()
         self.persistenceToFile(result)
         return result
 
@@ -193,18 +188,16 @@ class TaobaoAskAround:
         time.sleep(1)
 
     def persistenceToFile(self, record):
-        basedir = 'data'
         while True: 
-            filename = basedir + '/' + 'data-' + str(self.fileindex) + '.json'
+            filename = self.basedir + '/' + 'data-' + str(self.fileindex) + '.json'
+            #filename = self.basedir + '/test'
             if os.path.getsize(filename) > 1024 * 1024 * 10:
                 self.fileindex += 1
             else:
                 break
         with open(filename, 'a') as f:
-            f.write(json.dumps(record, ensure_ascii=False, encoding='gbk') + '\n')
+            f.write(json.dumps(record, ensure_ascii=False) + '\n')
         return True
-
-        
 
     def __del__(self):
         #self.closeFirefox()
@@ -212,6 +205,7 @@ class TaobaoAskAround:
         self.driver.quit()
         self.display.stop()
         logging.info("total used is %d", self.used_count) 
+
 
     #无用
     #用来关闭子进程
@@ -240,7 +234,7 @@ if __name__ == "__main__":
     #url = "https://item.taobao.com/item.htm?spm=a217f.1257546.1998139181.518.KNFLNq&id=521371673727&scm=1029.minilist-17.1.50099260&ppath=&sku=&ug=#detail"
     url = 'https://item.taobao.com/item.htm?id=520292671302'
     item = {'item_id' : "533774846773", 'id':123}
-    item = ( 4877,1,2,3,4,5,6,7,"528865833792")
-    #t.getInfo()
-    t.parse_item(item)
+    item = ( 2436,1,2,3,4,5,6,7,"535541261606")
+    t.getInfo()
+    #t.parse_item(item)
 

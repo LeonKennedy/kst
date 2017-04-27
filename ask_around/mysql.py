@@ -11,7 +11,7 @@ import json, sys,datetime, pymysql, pdb
 class MysqlTool:
     
     def __init__(self):
-        self.connect = pymysql.connect(host='localhost',user = 'kst',password='kst410',
+        self.connect = pymysql.connect(host='119.23.72.240',user = 'kst',password='kst410',
                 db='kst', charset='utf8mb4')
         self.cur_query = self.connect.cursor()
         self.cur_unique_query = self.connect.cursor()
