@@ -193,6 +193,8 @@ class TaobaoAskAround:
             #filename = self.basedir + '/test'
             if os.path.getsize(filename) > 1024 * 1024 * 10:
                 self.fileindex += 1
+                a = open(self.basedir + '/' + 'data-' + str(self.fileindex) + '.json','w')
+                a.close()
             else:
                 break
         with open(filename, 'a') as f:
