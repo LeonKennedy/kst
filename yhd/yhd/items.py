@@ -8,7 +8,13 @@
 import scrapy
 
 
-class YhdItem(scrapy.Item):
+class QAItem(scrapy.Item):
     # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    url = scrapy.Field()
+    product = scrapy.Field()
+    question = scrapy.Field()
+    question_user = scrapy.Field()
+    question_tm = scrapy.Field()
+    answer = scrapy.Field()
+    answer_user = scrapy.Field()
+    answer_tm = scrapy.Field()
