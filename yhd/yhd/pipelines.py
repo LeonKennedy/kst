@@ -16,7 +16,7 @@ class YhdPipeline(object):
         self.count = 0
 
         self.filecache = ""
-        self.datafile = 'yhd-2.json'
+        self.datafile = 'yhd-3.json'
 
     def process_item(self, item, spider):
         self.mt.insertByDict('yhd_ask', item)

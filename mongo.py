@@ -12,7 +12,8 @@ from datetime import datetime
 from pymongo import MongoClient
 import pdb, logging, json, traceback
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, filename='etl.log', filemode='a',
+        format="%(asctime)s-%(levelname)s-%(message)s")
 class mangguoDB:
     def __init__(self):
         self.client = MongoClient('121.40.107.148')
@@ -40,38 +41,39 @@ class mangguoDB:
     def taobaoSpiltAsk(self):
         db = self.client.taobao
         commondb = self.client.common
-        limit = 3000
-        skip = 7000
-        insertCount = 0
-        insertItem = 0
-        result = db.ask_around.find().skip(skip).limit(limit)
-        for i in result:
-            item = dict(i)
-            tbitem = dict()
-            tbitem['url'] = item['goods_url']
-            tbitem['price'] = item['price']
-            tbitem['content'] = item['goods_name']
-            tbitem['location'] = item['local']
-            tbitem['shop_id'] = item['shop_id']
-            tbitem['item_id'] = item['goods_id']
-            tbitem['category'] = item['category_id']
-            if self.mt.uniqueInsertByDict('taobao_items', tbitem, 'item_id'):
-                insertItem += 1
-            ask_list = item['ask_around_list']
-            for ask in ask_list:
-                a = commondb.ask_taobao.find_one({'topic_id' : ask['topic_id']})
-                if not a:
-                    try:
-                        commondb.ask_taobao.insert_one(ask)
-                    except:
-                        print(ask)
-                        logging.warn('=====something wrong===')
-                        traceback.print_exc()
-                    self.insertCount += 1
-                    insertCount += 1
-        logging.info("from %d  insert %d item and %d ask_card" % (skip,insertItem, insertCount))
-        skip += limit
-        self.mt.flush()
+        limit = 500
+        skip = 231000
+        while skip < 300000:
+            insertCount = 0
+            insertItem = 0
+            result = db.ask_around.find().skip(skip).limit(limit)
+            for i in result:
+                item = dict(i)
+                tbitem = dict()
+                tbitem['url'] = item['goods_url']
+                tbitem['price'] = item['price']
+                tbitem['content'] = item['goods_name']
+                tbitem['location'] = item['local']
+                tbitem['shop_id'] = item['shop_id']
+                tbitem['item_id'] = item['goods_id']
+                tbitem['category'] = item['category_id']
+                if self.mt.uniqueInsertByDict('taobao_items', tbitem, 'item_id'):
+                    insertItem += 1
+                ask_list = item['ask_around_list']
+                for ask in ask_list:
+                    a = commondb.ask_taobao.find_one({'topic_id' : ask['topic_id']})
+                    if not a:
+                        try:
+                            commondb.ask_taobao.insert_one(ask)
+                        except:
+                            print(ask)
+                            logging.warn('=====something wrong===')
+                            traceback.print_exc()
+                        self.insertCount += 1
+                        insertCount += 1
+            logging.info("from %d  insert %d item and %d ask_card" % (skip,insertItem, insertCount))
+            skip += limit
+            self.mt.flush()
 
     def yhdExtract(self):
         db = self.client.yhd
