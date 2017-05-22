@@ -8,13 +8,12 @@ class TuniuAskSpider(scrapy.Spider):
     allowed_domains = ["tuniu.com"]
     start_urls = ['http://ask.tuniu.com']
     baseurl = "http://ask.tuniu.com"
-    current_page_number = 33
+    current_page_number = 7760
     #末尾页数
     #end_page_number = 71267
-    end_page_number = 300
+    end_page_number = 10000
 
     def parse(self, response):
-
         for ask_card in response.xpath('//div[@class="moudle-list J_MList"]'):
             answer_count = ask_card.xpath('.//div[@class="moudle-bottom-right"]/span[2]/em/text()').extract_first()
             browse_count  = ask_card.xpath('.//div[@class="moudle-bottom-right"]/span[3]/em/text()').extract_first()
