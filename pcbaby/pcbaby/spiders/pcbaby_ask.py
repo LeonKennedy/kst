@@ -4,8 +4,6 @@ from pcbaby.items import PcbabyItem
 from datetime import datetime
 from datetime import timedelta
 from pybloomfilter import BloomFilter
-
-
 class PcbabyAskSpider(scrapy.Spider):
     def __init__(self):
         try:
@@ -17,7 +15,8 @@ class PcbabyAskSpider(scrapy.Spider):
     name = "pcbaby_ask"
     allowed_domains = ["pcbaby.com.cn"]
     #start_urls = ['http://kuaiwen.pcbaby.com.cn/']
-    start_urls = ['http://kuaiwen.pcbaby.com.cn/question/t2/p1.html']
+    start_urls = ['http://kuaiwen.pcbaby.com.cn/question/t1/p1.html',
+        'http://kuaiwen.pcbaby.com.cn/question/t30161/p1.html']
     #start_urls = ['http://kuaiwen.pcbaby.com.cn/question/1371668.html']
     #start_urls = ['http://kuaiwen.pcbaby.com.cn/question/1370360.html']
     #start_urls = ['http://kuaiwen.pcbaby.com.cn/question/1367838.html']
@@ -45,7 +44,7 @@ class PcbabyAskSpider(scrapy.Spider):
                 self.bf.add((askcard_url,reply_count))
         if count > 0:
             total = len(response.xpath('//ul[@class="qaList-ulList "]/li'))
-            logging.info(" %d page had been crawl %d, zero is %d" % (total, count, zore_count))
+            logging.info("[%d page had been crawl %d, zero is %d] %s" % (total, count, zore_count, response.url))
             flag =  (count / (total - zore_count)) < 0.5 
 
         next_url = response.xpath('//div[@class="pcbaby-page mb10"]/a[@class="next"]/@href').extract_first()

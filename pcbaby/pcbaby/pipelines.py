@@ -20,5 +20,7 @@ class PcbabyPipeline(object):
         a  = self.collection.find_one({'url':item['url']})
         if not a:
             self.collection.insert(dict(item))
-        return {"success":True}
+            return {"success":True}
+        else:
+            return {"success": False}
 
