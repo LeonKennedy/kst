@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy, pdb, logging, traceback
 from tuniu.items import TuniuItem
+from pybloomfilter import BloomFilter
 
 
 class TuniuAskSpider(scrapy.Spider):
@@ -8,12 +9,25 @@ class TuniuAskSpider(scrapy.Spider):
     allowed_domains = ["tuniu.com"]
     start_urls = ['http://ask.tuniu.com']
     baseurl = "http://ask.tuniu.com"
-    current_page_number = 7760
+    current_page_number = 20017
     #末尾页数
     #end_page_number = 71267
-    end_page_number = 10000
+    end_page_number = 25000
+
+    def __init__(self):
+        try:
+            self.bf = BloomFilter.open('tuniu.filter')
+        except:
+            logging.info("new filter.bloom")
+            self.bf = BloomFilter(100000000, 0.05, 'tuniu.filter')
+
+    def start_requests(self):
+        url = self.baseurl + "/p%d/" % self.current_page_number
+        for u in (url,):
+            yield scrapy.Request(url=u, callback=self.parse)
 
     def parse(self, response):
+        unanswer = crawled = 0
         for ask_card in response.xpath('//div[@class="moudle-list J_MList"]'):
             answer_count = ask_card.xpath('.//div[@class="moudle-bottom-right"]/span[2]/em/text()').extract_first()
             browse_count  = ask_card.xpath('.//div[@class="moudle-bottom-right"]/span[3]/em/text()').extract_first()
@@ -26,11 +40,21 @@ class TuniuAskSpider(scrapy.Spider):
             elif len(elements_a) == 2 : 
                 card_url = self.baseurl + elements_a[1].xpath('@href').extract_first()
             else:
-                pdb.set_trace()
-            if card_url:
-                yield scrapy.Request(card_url, callback = self.parse_askcard, meta = {'answer_count': answer_count, 'browse_count':browse_count})
+                logging.warn("something else")
 
-        if self.current_page_number < self.end_page_number:
+            if card_url and  not answer_count == '0' :
+                if (card_url, answer_count) in self.bf:
+                    crawled += 1
+                else:
+                    yield scrapy.Request(card_url, callback = self.parse_askcard, meta = {'answer_count': answer_count, 'browse_count':browse_count})
+                    self.bf.add((card_url, answer_count))
+            else:
+                unanswer += 1
+        if crawled > 0:
+            total = len(response.xpath('//div[@class="moudle-list J_MList"]'))
+            logging.info("[%d page had been crawl %d, zero is %d] %s" % (total, crawled, unanswer, response.url))
+
+        if self.current_page_number < self.end_page_number :
             self.current_page_number += 1
             url = self.baseurl + "/p%d/" % self.current_page_number
             yield scrapy.Request(url,callback = self.parse)
@@ -66,6 +90,8 @@ class TuniuAskSpider(scrapy.Spider):
                     tag_list.append({'tag_name': tag_name, 'tag_url': tag_url})
                 item['ask_tag'] = tag_list
                 item['answer_list'] = a
+                item['url'] = response.url
+                item['answer_count'] = response.meta.get('answer_count')
                 yield item
             except:
                 logging.error("%s" % response.url)

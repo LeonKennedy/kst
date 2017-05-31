@@ -6,7 +6,7 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 from pymongo import MongoClient
-import pdb
+import pdb, time
 
 class TuniuPipeline(object):
     def __init__(self):
@@ -17,6 +17,12 @@ class TuniuPipeline(object):
         self.collection = db.ask
 
     def process_item(self, item, spider):
-        a = self.collection.find_one({"data_code":item['data_code']})
-        if not a:
+        now = time.time()
+        item['update_tm'] = now
+        a = self.collection.find_one_and_update({"data_code":item['data_code']},{"$set":dict(item)})
+        if a:
+            return {'operate': 'update'}
+        else:
+            item['insert_tm'] = now
             self.collection.insert(dict(item))
+            return {'operate': 'insert'}

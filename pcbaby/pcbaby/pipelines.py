@@ -6,6 +6,7 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 from pymongo import MongoClient
+import time
 
 class PcbabyPipeline(object):
 
@@ -17,10 +18,12 @@ class PcbabyPipeline(object):
         self.collection = db.ask
 
     def process_item(self, item, spider):
-        a  = self.collection.find_one({'url':item['url']})
-        if not a:
-            self.collection.insert(dict(item))
-            return {"success":True}
+        item['update_tm'] = now = time.time()
+        a  = self.collection.find_one_and_update({'url':item['url']},{"$set":dict(item)})
+        if a:
+            return {"operate":"update"}
         else:
-            return {"success": False}
+            item['insert_tm'] = now
+            self.collection.insert(dict(item))
+            return {"operate": "insert"}
 

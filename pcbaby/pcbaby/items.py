@@ -14,6 +14,8 @@ class AskCardItem(scrapy.Item):
     question = scrapy.Field()
     answer_list = scrapy.Field()
     answer_count = scrapy.Field()
+    insert_tm = scrapy.Field()
+    update_tm = scrapy.Field()
 
 class PcbabyItem(AskCardItem):
     # define the fields for your item here like:
