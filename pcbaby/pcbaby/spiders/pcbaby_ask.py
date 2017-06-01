@@ -15,30 +15,12 @@ class PcbabyAskSpider(scrapy.Spider):
     name = "pcbaby_ask"
     allowed_domains = ["pcbaby.com.cn"]
     #start_urls = ['http://kuaiwen.pcbaby.com.cn/']
-    start_urls = [
-        #'http://kuaiwen.pcbaby.com.cn/question/t1/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t2/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t3/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t4/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t5/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t6/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t7/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t8/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t9/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t10/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t11/p1.html',
-       # 'http://kuaiwen.pcbaby.com.cn/question/t30161/p1.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t30162/p2.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t30163/p3.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t30164/p4.html',
-        #'http://kuaiwen.pcbaby.com.cn/question/t30165/p1.html'
-        ]
+    start_urls = [ 'http://kuaiwen.pcbaby.com.cn/question/t%d/p1.html' % i for i in (1,2,3,4,5,6,7,8,9,10,11,30161,30162,30163,30164,30165)]
 
     def start_requests(self):
-        #baseurl = ['http://kuaiwen.pcbaby.com.cn/question/t%d' % i for i in range(1,11)]
-        urls = [ 'http://kuaiwen.pcbaby.com.cn/question/t%d/p1.html' % i for i in range(30161,30166)]
+        urls = [ 'http://kuaiwen.pcbaby.com.cn/question/t%d/p1.html' % i for i in range(1,12) + range(30161,30166)]
         for category_url in urls:
-            print(category_url)
+            #print(category_url)
             yield scrapy.Request(category_url, callback=self.parse)
 
     def parse(self, response):
