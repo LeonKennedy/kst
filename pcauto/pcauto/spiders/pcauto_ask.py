@@ -56,7 +56,7 @@ class PcautoAskSpider(scrapy.Spider):
         user_url = response.xpath('//div[@class="dInfo gray"]/span[@class="sName"]/a/@href').extract_first()
         item['ask_user'] = {'name': user_name, 'url':user_url}
         element_best_answer = response.xpath('//div[@class="modAnswer modBest mt10"]//div[@class="tb"]')
-        item['best_answer'] = self.parse_answer(element_best_answer) if element_best_answer else None
+        item['best_answer'] = self.parse_answer(element_best_answer[0]) if element_best_answer else None
         
         answer_list = list()
         for element in response.xpath('//div[@class="modAnswer mt10 modOut"]/div[@class="modInner"]/div[@class!="th"]'):
