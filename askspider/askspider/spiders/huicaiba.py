@@ -11,7 +11,7 @@ class HuicaibaSpider(scrapy.Spider):
     start_urls = ['http://huicaiba.com/']
 
     def __init__(self):
-        bloomfilterfilename = 'bloomfilter/buicaiba.filter'
+        bloomfilterfilename = 'bloomfilter/huicaiba.filter'
         try:
             self.bf = BloomFilter.open(bloomfilterfilename)
         except:
@@ -20,9 +20,11 @@ class HuicaibaSpider(scrapy.Spider):
 
 
     def start_requests(self):
-        url = 'http://www.huicaiba.com/ask/1/index_12.html'
         #url ='http://www.huicaiba.com/ask/2920820.html'
-        yield scrapy.Request(url, callback=self.parse_category)
+        urls = [ 'http://www.huicaiba.com/ask/%d' % i for i in range(1,5)]
+        #urls = [ 'http://www.huicaiba.com/ask/%d' % i for i in range(1,43) if not i == 22]
+        for url in urls:
+            yield scrapy.Request(url+'/index_1.html', callback=self.parse_category)
 
     def parse_category(self, response):
         for element_li in response.xpath('//div[@id="wdrnav1_a"]/ul[@class="ask_list"]/li') + \
@@ -30,13 +32,14 @@ class HuicaibaSpider(scrapy.Spider):
             url = response.urljoin(element_li.xpath('h3/a/@href').extract_first())
             answer_count = element_li.xpath('h3/span/text()').extract_first().replace(u'\u56de\u7b54','')
             if '0' == answer_count or (url, answer_count) in self.bf:
-                print(1)
+                pass
             else:
                 yield scrapy.Request(url, callback=self.parse_askcard)
                 self.bf.add((url, answer_count))
 
-               
-
+        next_url = response.xpath('//div[@class="page"]/div/span[@class="next"][2]/a/@href').extract_first()
+        if next_url:
+            yield scrapy.Request(response.urljoin(next_url), callback=self.parse_category)
 
     def parse_askcard(self, response):
         item = HuicaibaItem()

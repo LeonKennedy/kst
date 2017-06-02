@@ -12,17 +12,14 @@ import time, logging
 
 class AskspiderPipeline(object):
     def __init__(self):
-        uri = "mongodb://%s:%s@%s/admin" % (
-            "kst", "kst410", "121.40.107.148:27017")
-        client = MongoClient(uri)
-        #db = client.pcauto
-        #self.collection = db.ask
+        #uri = "mongodb://%s:%s@%s/admin" % ("kst", "kst410", "121.40.107.148:27017")
+        self.client = MongoClient()
 
     def process_item(self, item, spider):
         item['update_tm'] = now = time.time()
         if isinstance(item, HuicaibaItem):
             db = self.client.huicaiba
-            collection = db.test
+            collection = db.ask
         else:
             return {"operate":None}
 
