@@ -9,10 +9,10 @@ class TuniuAskSpider(scrapy.Spider):
     allowed_domains = ["tuniu.com"]
     start_urls = ['http://ask.tuniu.com']
     baseurl = "http://ask.tuniu.com"
-    current_page_number = 20017
+    current_page_number = 25011
     #末尾页数
     #end_page_number = 71267
-    end_page_number = 25000
+    end_page_number = 35000
 
     def __init__(self):
         try:

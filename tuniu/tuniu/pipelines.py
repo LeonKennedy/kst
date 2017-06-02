@@ -10,9 +10,9 @@ import pdb, time
 
 class TuniuPipeline(object):
     def __init__(self):
-        uri = "mongodb://%s:%s@%s/tuniu" % (
-            "kst", "kst410", "121.40.107.148:27017")
-        client = MongoClient(uri)
+        #uri = "mongodb://%s:%s@%s/tuniu" % (
+        #    "kst", "kst410", "121.40.107.148:27017")
+        client = MongoClient()
         db = client.tuniu
         self.collection = db.ask
 
