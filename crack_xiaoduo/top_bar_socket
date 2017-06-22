@@ -1,0 +1,53 @@
+    def kst_socket_server(self):
+        ADDR = ('127.0.0.1', self.kst_socket_port)
+        tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tcpSerSock.bind(ADDR)
+        bufferzise = 1024
+        tcpSerSock.listen(5)
+        logger.info("start kst server in %s" % str(ADDR))
+
+        while True:
+            tcpCliSock, addr = tcpSerSock.accept()
+            logger.info("connect from %s" % str(addr))
+            input = [tcpCliSock]
+            output = [tcpCliSock]
+            errput = [tcpCliSock]
+            try:
+                while True:
+                    r_list, w_list, e_list = select.select(input, output, errput, 1)
+                    try:
+                        for indata in r_list:
+                            data = indata.recv(bufferzise)
+                            params = self.parse_kst_send_msg(data)
+                            logger.info("recevice data is %s" % str(params))
+                            self.send_msg(**params)
+                    except:
+                        logger.exception("olenji")
+                        input.remove(tcpCliSock)
+                        output.remove(tcpCliSock)
+                        errput.remove(tcpCliSock)
+                        break
+
+                    for outdata in w_list:
+                        if self.kst_receiv_msgs:
+                            msg = self.kst_receiv_msgs.pop()
+                            outdata.sendall(msg)
+                            logger.info("finish send msg is :%s" % msg)
+
+                    if e_list:
+                        input.remove(tcpCliSock)
+                        output.remove(tcpCliSock)
+                        errput.remove(tcpCliSock)
+                        break
+            except:
+                logger.exception("Exception Logged")
+            logger.info('restart socket')
+
+    def parse_kst_send_msg(self, msg):
+        msgd = json.loads(msg)
+        data = dict()
+        data['snick'] = 'hjh503hjh'
+        data['pin'] = msgd['pin']
+        data['msg'] = msgd['msg']
+        data['is_clear_timing'] = True
+        return data
