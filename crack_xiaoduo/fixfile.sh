@@ -12,9 +12,20 @@ function top_bar()
         sed -i "${iline}a\ $param1" $filename
     done
     sed -i '23i import select, socket' $filename
+    param2='       self.hide()'
+    sed -i "/def detect_users/a\ $param2" $filename
     sed -i 's/self.show()/self.hide()/g' $filename
     sed -i 's/tray.show()/#tray.show()/' $filename
     echo "" >> $filename
     cat top_bar_socket >> $filename
-    echo 'fixed top_bar'
 }
+
+function side_windows()
+{
+    filename='lib/side_window.pyo_dis'
+    param1='       self.is_show = 0'
+    sed -i "257a\ $param1" $filename
+    sed -i 's/self.half_auto_lite_window.show/self.half_auto_lite_window.hide/g' $filename
+    sed -i '/self.side_window_lite_window.show/d' $filename
+}
+
