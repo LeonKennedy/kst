@@ -46,7 +46,7 @@
     def parse_kst_send_msg(self, msg):
         msgd = json.loads(msg)
         data = dict()
-        data['snick'] = 'hjh503hjh'
+        data['snick'] = msgd['snick']
         data['pin'] = msgd['pin']
         data['msg'] = msgd['msg']
         data['is_clear_timing'] = True
